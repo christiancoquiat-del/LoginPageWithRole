@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON-CORE | Absolute Terminal</title>
+    <style>
+        /* ========================================
+           CORE DESIGN SYSTEM (YOUR THEME)
+           ========================================
+        */
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background-attachment: fixed;
+            color: white; /* High contrast white text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        /* High-Visibility Scrollbar */
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+        ::-webkit-scrollbar-thumb { 
+            background: #00f2ff; 
+            border-radius: 10px;
+            border: 3px solid #0f2027;
+        }
+
+        /* --- Header Section --- */
+        .header {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 2px solid #00f2ff;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .logo {
+            font-size: 38px;
+            color: #00f2ff;
+            font-weight: 800;
+            letter-spacing: 5px;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.7);
+        }
+
+        /* --- Layout Container --- */
+        .container {
+            width: 95%;
+            max-width: 1300px;
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* --- Your Card Theme --- */
+        .card {
+            padding: 40px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(25px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: #00f2ff;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+        }
+
+        .card h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #a8cfff;
+            margin-bottom: 30px;
+            border-left: 3px solid #00f2ff;
+            padding-left: 15px;
+        }
+
+        /* --- GRID SYSTEM --- */
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+
+        /* --- KPI STATS --- */
+        .kpi-box { text-align: center; }
+        .kpi-value { font-size: 42px; font-weight: 800; color: #fff; margin-bottom: 5px; }
+        .kpi-label { font-size: 11px; color: #00f2ff; letter-spacing: 1px; font-weight: 700; }
+
+        /* ========================================
+           CUSTOM SVG CHARTS (NO LIBRARIES)
+           ========================================
+        */
+        .chart-frame {
+            width: 100%;
+            height: 250px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            position: relative;
+            padding: 20px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+        }
+
+        /* 1. Bar Chart Visualization */
+        .bar {
+            width: 40px;
+            background: linear-gradient(to top, #0066ff, #00f2ff);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: height 1s ease-in-out;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+        }
+
+        .bar::before {
+            content: attr(data-value);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* 2. SVG Line Chart */
+        .svg-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .line-path {
+            fill: none;
+            stroke: #00f2ff;
+            stroke-width: 4;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 8px #00f2ff);
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 3s forwards;
+        }
+
+        @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+        /* 3. Circular Progress Chart */
+        .circle-chart {
+            width: 150px;
+            height: 150px;
+            transform: rotate(-90deg);
+        }
+
+        .circle-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 10; }
+        .circle-progress {
+            fill: none;
+            stroke: #00f2ff;
+            stroke-width: 10;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 110; /* 75% */
+            stroke-linecap: round;
+            transition: stroke-dashoffset 2s;
+        }
+
+        /* --- Admin Controls --- */
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; color: #a8cfff; font-size: 12px; margin-bottom: 8px; font-weight: 600; }
+        input, select {
+            width: 100%;
+            padding: 14px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            outline: none;
+        }
+        input:focus { border-color: #00f2ff; box-shadow: 0 0 10px rgba(0,242,255,0.3); }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00f2ff, #0066ff);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0, 242, 255, 0.4); }
+
+        /* --- Table View --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #00f2ff; font-size: 11px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        td { padding: 15px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        .status-dot {
+            height: 8px; width: 8px; background: #00ff88; border-radius: 50%; display: inline-block; margin-right: 8px;
+            box-shadow: 0 0 8px #00ff88;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .grid-4, .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">MICROLEARNING - ADMIN DASHBOARD</div>
+    </header>
+
+    <div class="container">
+        
+        <div class="grid-4">
+            <div class="card kpi-box">
+                <div class="kpi-value" id="count-cpu">84%</div>
+                <div class="kpi-label">CPU LOAD</div>
+            </div>
+            <div class="card kpi-box">
+                <div class="kpi-value">12.4 TB</div>
+                <div class="kpi-label">BANDWIDTH</div>
+            </div>
+            <div class="card kpi-box">
+                <div class="kpi-value" id="count-ping">24ms</div>
+                <div class="kpi-label">NETWORK LATENCY</div>
+            </div>
+            <div class="card kpi-box">
+                <div class="kpi-value">0 ERR</div>
+                <div class="kpi-label">SYSTEM UPTIME</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            
+            <div class="card">
+                <h2>Node Traffic Distribution</h2>
+                <div class="chart-frame">
+                    <div class="bar" style="height: 40%;" data-value="40%"></div>
+                    <div class="bar" style="height: 75%;" data-value="75%"></div>
+                    <div class="bar" style="height: 60%;" data-value="60%"></div>
+                    <div class="bar" style="height: 90%;" data-value="90%"></div>
+                    <div class="bar" style="height: 55%;" data-value="55%"></div>
+                    <div class="bar" style="height: 30%;" data-value="30%"></div>
+                </div>
+                <div style="display:flex; justify-content:space-around; margin-top:15px; font-size:10px; color:#a8cfff;">
+                    <span>JP-1</span><span>US-E</span><span>EU-W</span><span>SG-1</span><span>AU-S</span><span>BR-Z</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Real-time Throughput (Pulse)</h2>
+                <div class="chart-frame">
+                    <svg class="svg-container" viewBox="0 0 500 200">
+                        <path class="line-path" d="M0,150 L50,130 L100,160 L150,80 L200,110 L250,40 L300,90 L350,20 L400,70 L450,50 L500,80" />
+                        <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(255,255,255,0.05)" />
+                        <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255,255,255,0.05)" />
+                        <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255,255,255,0.05)" />
+                    </svg>
+                </div>
+                <p style="text-align:center; font-size:11px; margin-top:10px; color:#00f2ff;">STREAMING ACTIVE...</p>
+            </div>
+
+        </div>
+
+        <div class="grid-2">
+            
+            <div class="card" style="display: flex; align-items: center; justify-content: space-around;">
+                <div>
+                    <h2>Storage Capacity</h2>
+                    <div class="kpi-value">75%</div>
+                    <div class="kpi-label">Used: 9.3 / 12 TB</div>
+                </div>
+                <svg class="circle-chart">
+                    <circle class="circle-bg" cx="75" cy="75" r="70" />
+                    <circle class="circle-progress" cx="75" cy="75" r="70" />
+                </svg>
+            </div>
+
+            <div class="card">
+                <h2>Protocol Manual Override</h2>
+                <div class="grid-2" style="gap:15px;">
+                    <div class="input-group">
+                        <label>Target Node</label>
+                        <select>
+                            <option>Mainframe_Alpha</option>
+                            <option>Subnet_Beta</option>
+                            <option>Cloud_Cluster_09</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Security Key</label>
+                        <input type="password" placeholder="••••••••">
+                    </div>
+                </div>
+                <button onclick="handleAction()">Initialize Flush</button>
+            </div>
+
+        </div>
+
+        <div class="card">
+            <h2>System Audit Logs (Last 240 Sequences)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sequence ID</th>
+                        <th>Origin</th>
+                        <th>Destination</th>
+                        <th>Payload</th>
+                        <th>Latency</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody id="log-body">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Thread Heatmap Allocation</h2>
+            <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 10px; margin-top: 20px;" id="heatmap">
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. Generate Log Table Rows
+        const logBody = document.getElementById('log-body');
+        const origins = ['TOK-EDG', 'SFO-CLD', 'LDN-SRV', 'SIN-HUB'];
+        
+        for (let i = 0; i < 15; i++) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="font-family: monospace;">#${Math.floor(Math.random()*90000) + 10000}</td>
+                <td>${origins[Math.floor(Math.random()*origins.length)]}</td>
+                <td>INTERNAL_GATEWAY</td>
+                <td>${(Math.random()*100).toFixed(2)} MB</td>
+                <td>${(Math.random()*50).toFixed(1)}ms</td>
+                <td><span class="status-dot"></span> SUCCESS</td>
+            `;
+            logBody.appendChild(row);
+        }
+
+        // 2. Generate Heatmap Grid
+        const heatmap = document.getElementById('heatmap');
+        for (let i = 0; i < 48; i++) {
+            const box = document.createElement('div');
+            const opacity = Math.random();
+            box.style.height = '30px';
+            box.style.borderRadius = '4px';
+            box.style.background = `rgba(0, 242, 255, ${opacity})`;
+            box.style.boxShadow = opacity > 0.7 ? '0 0 10px #00f2ff' : 'none';
+            heatmap.appendChild(box);
+        }
+
+        // 3. Live Pulse Simulation
+        setInterval(() => {
+            // Update CPU Stat
+            const cpu = Math.floor(Math.random() * 40) + 40;
+            document.getElementById('count-cpu').innerText = cpu + '%';
+            
+            // Update Ping Stat
+            const ping = Math.floor(Math.random() * 15) + 18;
+            document.getElementById('count-ping').innerText = ping + 'ms';
+
+            // Flickering Effect for Heatmap
+            const boxes = heatmap.getElementsByTagName('div');
+            const target = Math.floor(Math.random() * boxes.length);
+            boxes[target].style.background = `rgba(0, 242, 255, ${Math.random()})`;
+        }, 800);
+
+        function handleAction() {
+            alert("COMMAND SENT: Protocol synchronization in progress...");
+        }
+
+        console.log("NEON-CORE TERMINAL: All circuits operational.");
+    </script>
+
+    </body>
+</html>

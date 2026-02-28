@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON-EDU | Instructor Command</title>
+    <style>
+        /* ========================================
+           CORE THEME ENGINE (Cyber-Glass)
+           ========================================
+        */
+        * {
+            box-sizing: border-box;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background-attachment: fixed;
+            color: #ffffff; /* High contrast white */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* High-Visibility Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+        ::-webkit-scrollbar-thumb { 
+            background: #00f2ff; 
+            border-radius: 10px;
+            box-shadow: 0 0 10px #00f2ff;
+        }
+
+        /* --- Header Section --- */
+        .header {
+            width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 2px solid #00f2ff;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 32px;
+            color: #00f2ff;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(0, 242, 255, 0.6);
+        }
+
+        /* --- Layout Grid --- */
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1.5fr 1fr; gap: 25px; }
+
+        /* --- Glass Card Style --- */
+        .card {
+            padding: 30px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(25px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            transition: 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #00f2ff;
+            transform: translateY(-3px);
+        }
+
+        .card h2 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #a8cfff;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card h2 span { color: #00f2ff; font-weight: 800; }
+
+        /* --- KPI Data --- */
+        .kpi-value { font-size: 38px; font-weight: 800; color: #fff; margin-bottom: 2px; }
+        .kpi-sub { font-size: 11px; color: #00f2ff; font-weight: 700; text-transform: uppercase; }
+
+        /* --- SVG CHARTS (NO LIBRARIES) --- */
+        .chart-area {
+            width: 100%;
+            height: 220px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Session Pulse Line */
+        .pulse-svg { width: 100%; height: 100%; }
+        .pulse-path {
+            fill: none;
+            stroke: #00f2ff;
+            stroke-width: 3;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 4s forwards linear;
+        }
+
+        @keyframes drawLine { to { stroke-dashoffset: 0; } }
+
+        /* Performance Bars */
+        .bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 15%; }
+        .bar {
+            width: 100%;
+            background: linear-gradient(to top, #0066ff, #00f2ff);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+            transition: height 1.5s;
+        }
+        .bar-label { font-size: 9px; color: #a8cfff; }
+
+        /* Performance Heatmap */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 6px;
+        }
+        .heat-cell {
+            height: 25px;
+            border-radius: 3px;
+            background: rgba(0, 242, 255, 0.1);
+            cursor: pointer;
+        }
+        .heat-cell:hover { border: 1px solid #fff; }
+
+        /* --- Table Styling (Logs) --- */
+        .table-wrap { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: #00f2ff; font-size: 11px; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); text-transform: uppercase; }
+        td { padding: 15px; font-size: 13px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .in { background: rgba(0, 255, 136, 0.15); color: #00ff88; border: 1px solid #00ff88; }
+        .out { background: rgba(255, 77, 77, 0.15); color: #ff4d4d; border: 1px solid #ff4d4d; }
+
+        /* --- Controls --- */
+        .input-box { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; color: #a8cfff; margin-bottom: 5px; text-transform: uppercase; }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #00f2ff, #0066ff);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+        button:hover { box-shadow: 0 0 20px rgba(0, 242, 255, 0.5); transform: scale(1.02); }
+
+        @media (max-width: 1024px) {
+            .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">MICROLEARNING INSTRUCTOR DASHBOARD</div>
+    </header>
+
+    <div class="container">
+        
+        <div class="grid-4">
+            <div class="card">
+                <h2>Total Students <span>USR_DB</span></h2>
+                <div class="kpi-value" id="val-students">1,248</div>
+                <div class="kpi-sub">Active Enrollment</div>
+            </div>
+            <div class="card">
+                <h2>Total Lessons <span>CONTENT</span></h2>
+                <div class="kpi-value">84</div>
+                <div class="kpi-sub">Modules Released</div>
+            </div>
+            <div class="card">
+                <h2>Active Sessions <span>LIVE</span></h2>
+                <div class="kpi-value" id="val-sessions">12</div>
+                <div class="kpi-sub">Global Instances</div>
+            </div>
+            <div class="card">
+                <h2>Avg Performance <span>KPI</span></h2>
+                <div class="kpi-value">88.4%</div>
+                <div class="kpi-sub" style="color:#00ff88">▲ 2.4% vs Last Term</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            
+            <div class="card">
+                <h2>Grade Distribution (Per Module) <span>GRADES</span></h2>
+                <div class="chart-area">
+                    <div class="bar-group"><div class="bar" style="height: 60%;"></div><span class="bar-label">M1</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 85%;"></div><span class="bar-label">M2</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 70%;"></div><span class="bar-label">M3</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 95%;"></div><span class="bar-label">M4</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 40%;"></div><span class="bar-label">M5</span></div>
+                    <div class="bar-group"><div class="bar" style="height: 80%;"></div><span class="bar-label">M6</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Student Engagement Heatmap <span>MATRIX</span></h2>
+                <div class="heatmap-grid" id="heatmap">
+                    </div>
+                <div style="margin-top: 15px; font-size: 10px; color: #a8cfff; display: flex; justify-content: space-between;">
+                    <span>Low Activity</span>
+                    <span>High Peak</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="grid-2">
+            
+            <div class="card">
+                <h2>Access Logs (Log-In / Log-Out) <span>SECURITY</span></h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Timestamp</th>
+                                <th>Action</th>
+                                <th>IP Origin</th>
+                                <th>Session ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Instructor Terminal <span>OVERRIDE</span></h2>
+                <div class="input-box">
+                    <label>Quick Action</label>
+                    <select>
+                        <option>Unlock Module 09</option>
+                        <option>Force Logout All</option>
+                        <option>Broadcast Message</option>
+                        <option>Sync Gradebook</option>
+                    </select>
+                </div>
+                <div class="input-box">
+                    <label>Target Class Cluster</label>
+                    <input type="text" placeholder="e.g. CS_BATCH_2026_B">
+                </div>
+                <div class="input-box">
+                    <label>Confirmation Pin</label>
+                    <input type="password" placeholder="••••">
+                </div>
+                <button onclick="triggerAction()">Execute Command</button>
+            </div>
+
+        </div>
+
+        <div class="card">
+            <h2>Real-time Session Frequency (Pulse) <span>TRAFFIC</span></h2>
+            <div class="chart-area" style="height: 180px;">
+                <svg class="pulse-svg" viewBox="0 0 1000 150">
+                    <path class="pulse-path" d="M0,75 L50,80 L100,60 L150,110 L200,40 L250,90 L300,10 L350,130 L400,60 L450,90 L500,20 L550,110 L600,40 L650,80 L700,120 L750,30 L800,90 L850,50 L900,110 L950,40 L1000,75" />
+                </svg>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. Generate Access Logs
+        const logBody = document.getElementById('log-body');
+        const students = ['NEO_201', 'CYB_992', 'ZEN_404', 'TRX_118', 'GLX_502'];
+        const actions = ['LOG_IN', 'LOG_OUT'];
+        
+        for (let i = 0; i < 10; i++) {
+            const act = actions[Math.floor(Math.random() * actions.length)];
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="font-family: monospace; color:#00f2ff;">#${students[Math.floor(Math.random()*students.length)]}</td>
+                <td>${new Date().toLocaleTimeString()}</td>
+                <td><span class="status-pill ${act === 'LOG_IN' ? 'in' : 'out'}">${act}</span></td>
+                <td>192.168.1.${Math.floor(Math.random()*255)}</td>
+                <td style="font-family: monospace; font-size:11px;">0xFA${Math.floor(Math.random()*9000)+1000}</td>
+            `;
+            logBody.prepend(row);
+        }
+
+        // 2. Generate Heatmap Cells
+        const heatmap = document.getElementById('heatmap');
+        for (let i = 0; i < 50; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'heat-cell';
+            const intensity = Math.random();
+            cell.style.background = `rgba(0, 242, 255, ${intensity})`;
+            if (intensity > 0.8) cell.style.boxShadow = '0 0 10px #00f2ff';
+            heatmap.appendChild(cell);
+        }
+
+        // 3. Live Simulation Logic
+        setInterval(() => {
+            // Update Students Count
+            const currentStudents = parseInt(document.getElementById('val-students').innerText.replace(',', ''));
+            if(Math.random() > 0.7) {
+                document.getElementById('val-students').innerText = (currentStudents + 1).toLocaleString();
+            }
+
+            // Update Active Sessions
+            const sessionVal = Math.floor(Math.random() * 5) + 8;
+            document.getElementById('val-sessions').innerText = sessionVal;
+
+            // Flicker Heatmap
+            const cells = heatmap.getElementsByClassName('heat-cell');
+            const target = Math.floor(Math.random() * cells.length);
+            cells[target].style.background = `rgba(0, 242, 255, ${Math.random()})`;
+        }, 2000);
+
+        function triggerAction() {
+            alert("COMMAND DISPATCHED: System state synchronized with class cluster.");
+        }
+
+        console.log("NEON-EDU: Instructor Terminal Verified.");
+    </script>
+
+</body>
+</html>

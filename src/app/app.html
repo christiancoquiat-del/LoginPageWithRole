@@ -27,11 +27,14 @@
 
     <button (click)="Validate()">Sign In</button>
 
-    <p [style.color]="answer !== 'Logged in successfully' ? '#ff6b6b' : '#00ffae'">
-      {{answer}}
+    <p [style.color]="answer !== 'Login success' ? 'red' : 'green'">
+      {{answer}} as a/n {{role}}
     </p>
 
   </div>
 </div>
 
 <router-outlet></router-outlet>
+<app-student *ngIf="role === 'student'"></app-student>
+<app-admin *ngIf="role === 'admin'"></app-admin>
+<app-instructor *ngIf="role === 'instructor'"></app-instructor>
